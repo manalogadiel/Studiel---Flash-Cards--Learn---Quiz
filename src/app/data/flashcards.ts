@@ -2,7 +2,10 @@ export {
   type Flashcard,
   type Subject,
   DEFAULT_SUBJECTS,
+  qmGurusCards,
+  emergingTrendsCards,
+  qmChapter1Cards,
   it321Cards,
   envCards,
-  envCards as flashcards,
+  qmGurusCards as flashcards,
 } from "./subjects";

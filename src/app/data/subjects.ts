@@ -1,3 +1,7 @@
+import { qmGurusCards } from "./qmGurusCards";
+import { emergingTrendsCards } from "./emergingTrendsCards";
+import { qmChapter1Cards } from "./qmChapter1Cards";
+
 export type Flashcard = {
   id: number;
   term: string;
@@ -12,6 +16,8 @@ export type Subject = {
   isCustom?: boolean;
   cards: Flashcard[];
 };
+
+export { qmGurusCards, emergingTrendsCards, qmChapter1Cards };
 
 export const it321Cards: Flashcard[] = [
   {
@@ -641,6 +647,30 @@ export const envCards: Flashcard[] = [
 
 export const DEFAULT_SUBJECTS: Subject[] = [
   {
+    id: "qm-gurus",
+    name: "Quality Management Gurus",
+    code: "QMG 201",
+    description: "Deming, Juran, Crosby, Feigenbaum, PDCA, 14-points, and Total Quality Control.",
+    isCustom: false,
+    cards: qmGurusCards,
+  },
+  {
+    id: "emerging-trends-quality",
+    name: "Emerging Trends in Quality",
+    code: "ETQ 301",
+    description: "Industry 4.0, Quality 4.0 (C-I-A), enabling technologies, big data, and analytics.",
+    isCustom: false,
+    cards: emergingTrendsCards,
+  },
+  {
+    id: "qm-chapter-1",
+    name: "Chapter 1: Quality Management",
+    code: "QM 101",
+    description: "Definitions of Quality, organizational levels, QMS, and TQM implementation strategies.",
+    isCustom: false,
+    cards: qmChapter1Cards,
+  },
+  {
     id: "it-321",
     name: "Human Computer Interaction",
     code: "IT 321",
@@ -658,17 +688,17 @@ export const DEFAULT_SUBJECTS: Subject[] = [
   },
 ];
 
-const STORAGE_KEY = "studiel_subjects_v2";
-const ACTIVE_KEY = "studiel_active_subject_id_v2";
+const STORAGE_KEY = "studiel_subjects_v3";
+const ACTIVE_KEY = "studiel_active_subject_id_v3";
 
 export function loadStoredSubjects(): Subject[] {
   if (typeof window === "undefined") return DEFAULT_SUBJECTS;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("studiel_subjects_v2");
     if (!raw) return DEFAULT_SUBJECTS;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      // Ensure the built-in subjects are present and up to date
+      // Ensure all built-in subjects are present and up to date
       const customSubjects = parsed.filter((s: Subject) => s.isCustom);
       return [...DEFAULT_SUBJECTS, ...customSubjects];
     }
@@ -688,14 +718,14 @@ export function saveStoredSubjects(subjects: Subject[]): void {
 }
 
 export function getActiveSubjectId(available: Subject[]): string {
-  if (typeof window === "undefined") return available[0]?.id ?? "it-321";
+  if (typeof window === "undefined") return available[0]?.id ?? "qm-gurus";
   try {
-    const saved = localStorage.getItem(ACTIVE_KEY);
+    const saved = localStorage.getItem(ACTIVE_KEY) || localStorage.getItem("studiel_active_subject_id_v2");
     if (saved && available.some((s) => s.id === saved)) {
       return saved;
     }
   } catch {}
-  return available[0]?.id ?? "it-321";
+  return available[0]?.id ?? "qm-gurus";
 }
 
 export function setActiveSubjectId(id: string): void {
@@ -704,3 +734,4 @@ export function setActiveSubjectId(id: string): void {
     localStorage.setItem(ACTIVE_KEY, id);
   } catch {}
 }
+

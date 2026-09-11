@@ -87,9 +87,11 @@ export default function App() {
         <header className="sticky top-0 z-20 bg-background/90 backdrop-blur border-b px-4 py-2.5 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
-                S
-              </div>
+              <img
+                src="/app-logo.png"
+                alt="Studiel Logo"
+                className="h-9 w-9 rounded-xl object-contain shadow-sm shrink-0"
+              />
               <div>
                 <div className="font-bold text-base leading-tight tracking-tight flex items-center gap-1.5">
                   Studiel

@@ -648,7 +648,7 @@ export const envCards: Flashcard[] = [
 export const DEFAULT_SUBJECTS: Subject[] = [
   {
     id: "qm-gurus",
-    name: "Quality Management Gurus",
+    name: "Chapter 3: Quality Management Gurus",
     code: "QMG 201",
     description: "Deming, Juran, Crosby, Feigenbaum, PDCA, 14-points, and Total Quality Control.",
     isCustom: false,
@@ -656,7 +656,7 @@ export const DEFAULT_SUBJECTS: Subject[] = [
   },
   {
     id: "emerging-trends-quality",
-    name: "Emerging Trends in Quality",
+    name: "Chapter 2: Emerging Trends in Quality",
     code: "ETQ 301",
     description: "Industry 4.0, Quality 4.0 (C-I-A), enabling technologies, big data, and analytics.",
     isCustom: false,
@@ -724,7 +724,7 @@ export function getActiveSubjectId(available: Subject[]): string {
     if (saved && available.some((s) => s.id === saved)) {
       return saved;
     }
-  } catch {}
+  } catch { }
   return available[0]?.id ?? "qm-gurus";
 }
 
@@ -732,6 +732,6 @@ export function setActiveSubjectId(id: string): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(ACTIVE_KEY, id);
-  } catch {}
+  } catch { }
 }
 

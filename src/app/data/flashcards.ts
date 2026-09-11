@@ -5,6 +5,7 @@ export {
   qmGurusCards,
   emergingTrendsCards,
   qmChapter1Cards,
+  qmChapter1V2Cards,
   it321Cards,
   envCards,
   qmGurusCards as flashcards,

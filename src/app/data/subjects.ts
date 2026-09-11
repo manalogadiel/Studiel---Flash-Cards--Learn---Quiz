@@ -1,6 +1,7 @@
 import { qmGurusCards } from "./qmGurusCards";
 import { emergingTrendsCards } from "./emergingTrendsCards";
 import { qmChapter1Cards } from "./qmChapter1Cards";
+import { qmChapter1V2Cards } from "./qmChapter1V2Cards";
 
 export type Flashcard = {
   id: number;
@@ -17,7 +18,7 @@ export type Subject = {
   cards: Flashcard[];
 };
 
-export { qmGurusCards, emergingTrendsCards, qmChapter1Cards };
+export { qmGurusCards, emergingTrendsCards, qmChapter1Cards, qmChapter1V2Cards };
 
 export const it321Cards: Flashcard[] = [
   {
@@ -671,6 +672,14 @@ export const DEFAULT_SUBJECTS: Subject[] = [
     cards: qmChapter1Cards,
   },
   {
+    id: "qm-chapter-1-v2",
+    name: "Chapter 1: Version 2 Quality Management",
+    code: "QM 102",
+    description: "Terms & definitions, Types of Quality, QC vs QA, QMS/TQM, Dimensions, 8 Principles, and Japanese TQM concepts.",
+    isCustom: false,
+    cards: qmChapter1V2Cards,
+  },
+  {
     id: "it-321",
     name: "Human Computer Interaction",
     code: "IT 321",
@@ -688,13 +697,16 @@ export const DEFAULT_SUBJECTS: Subject[] = [
   },
 ];
 
-const STORAGE_KEY = "studiel_subjects_v3";
-const ACTIVE_KEY = "studiel_active_subject_id_v3";
+const STORAGE_KEY = "studiel_subjects_v4";
+const ACTIVE_KEY = "studiel_active_subject_id_v4";
 
 export function loadStoredSubjects(): Subject[] {
   if (typeof window === "undefined") return DEFAULT_SUBJECTS;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("studiel_subjects_v2");
+    const raw =
+      localStorage.getItem(STORAGE_KEY) ||
+      localStorage.getItem("studiel_subjects_v3") ||
+      localStorage.getItem("studiel_subjects_v2");
     if (!raw) return DEFAULT_SUBJECTS;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
@@ -718,14 +730,17 @@ export function saveStoredSubjects(subjects: Subject[]): void {
 }
 
 export function getActiveSubjectId(available: Subject[]): string {
-  if (typeof window === "undefined") return available[0]?.id ?? "qm-gurus";
+  if (typeof window === "undefined") return "qm-chapter-1-v2";
   try {
-    const saved = localStorage.getItem(ACTIVE_KEY) || localStorage.getItem("studiel_active_subject_id_v2");
+    const saved =
+      localStorage.getItem(ACTIVE_KEY) ||
+      localStorage.getItem("studiel_active_subject_id_v3") ||
+      localStorage.getItem("studiel_active_subject_id_v2");
     if (saved && available.some((s) => s.id === saved)) {
       return saved;
     }
   } catch { }
-  return available[0]?.id ?? "qm-gurus";
+  return "qm-chapter-1-v2";
 }
 
 export function setActiveSubjectId(id: string): void {

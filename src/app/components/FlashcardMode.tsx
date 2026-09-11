@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "motion/react";
 import { Check, RotateCcw, Shuffle, ArrowDownUp, X } from "lucide-react";
 import { Button } from "./ui/button";
@@ -150,7 +150,11 @@ export function FlashcardMode({ cards = ALL }: Props) {
         <Progress value={progress} />
       </div>
 
-      <div className="relative h-[60vh] max-h-[480px] min-h-[320px] flex items-center justify-center">
+      {/* Card area — touch-action:none tells the browser we handle ALL touches */}
+      <div
+        className="relative h-[60vh] max-h-[480px] min-h-[320px] flex items-center justify-center"
+        style={{ touchAction: "none" }}
+      >
         <AnimatePresence mode="popLayout" initial={false}>
           <SwipeCard
             key={current.id}
@@ -188,10 +192,13 @@ export function FlashcardMode({ cards = ALL }: Props) {
 }
 
 // ─── SwipeCard ────────────────────────────────────────────────────────────────
-// Pure native-touch driven card — NO Framer Motion drag.
-// The motion value `x` is updated directly by touch/pointer events so the card
-// follows the finger at 1:1 with zero latency.  Framer's spring animation is
-// used only for the snap-back and exit fly-out.
+// Uses native addEventListener with { passive: false } so that preventDefault()
+// actually works on Android & iOS.  React's synthetic onTouchMove is PASSIVE
+// by default — calling preventDefault() on it is silently ignored, which is
+// why the previous implementation failed on mobile.
+//
+// touch-action: none on both the container AND this element tells the browser
+// not to handle any touch gestures (scroll, back-swipe, etc.) itself.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function SwipeCard({
@@ -215,113 +222,131 @@ function SwipeCard({
   const back  = definitionFirst ? card.term : card.definition;
   const gradient = gradientFor(card.id);
 
-  // All gesture state lives in refs — mutating them never re-renders
+  const cardRef = useRef<HTMLDivElement>(null);
   const decidedRef = useRef(false);
   const gestureRef = useRef<{
     startX: number;
     startY: number;
     lastX: number;
     startTime: number;
-    axis: "h" | "v" | null; // locked gesture axis
   } | null>(null);
 
   // ── helpers ────────────────────────────────────────────────────────────────
 
-  const snapBack = () =>
-    animate(x, 0, { type: "spring", stiffness: 500, damping: 38, mass: 0.6 });
+  const snapBack = useCallback(
+    () => animate(x, 0, { type: "spring", stiffness: 500, damping: 38, mass: 0.6 }),
+    [x],
+  );
 
-  const flyOut = (dir: 1 | -1, known: boolean) => {
-    if (decidedRef.current) return;
-    decidedRef.current = true;
-    setExitDir(dir);
-    onDecision(known);
-  };
+  const flyOut = useCallback(
+    (dir: 1 | -1, known: boolean) => {
+      if (decidedRef.current) return;
+      decidedRef.current = true;
+      setExitDir(dir);
+      onDecision(known);
+    },
+    [onDecision],
+  );
 
-  const settle = (dx: number, vx: number) => {
-    const DIST = 72;  // px
-    const VEL  = 280; // px/s
-    if      (dx >  DIST || (dx >  18 && vx >  VEL)) flyOut( 1, true);
-    else if (dx < -DIST || (dx < -18 && vx < -VEL)) flyOut(-1, false);
-    else snapBack();
-  };
+  const settle = useCallback(
+    (dx: number, vx: number) => {
+      const DIST = 72;
+      const VEL  = 280;
+      if      (dx >  DIST || (dx >  18 && vx >  VEL)) flyOut( 1, true);
+      else if (dx < -DIST || (dx < -18 && vx < -VEL)) flyOut(-1, false);
+      else snapBack();
+    },
+    [flyOut, snapBack],
+  );
 
-  // ── touch handlers (mobile) ────────────────────────────────────────────────
+  // ── Native touch listeners with { passive: false } ────────────────────────
+  // This is the ONLY way to make preventDefault() work on mobile browsers.
+  // React's synthetic onTouchMove is always passive → preventDefault is a no-op.
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    if (decidedRef.current || e.touches.length !== 1) return;
-    const t = e.touches[0];
-    gestureRef.current = { startX: t.clientX, startY: t.clientY, lastX: t.clientX, startTime: performance.now(), axis: null };
-  };
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
 
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (!gestureRef.current || decidedRef.current || e.touches.length !== 1) return;
-    const t = e.touches[0];
-    const dx = t.clientX - gestureRef.current.startX;
-    const dy = t.clientY - gestureRef.current.startY;
+    const handleStart = (e: TouchEvent) => {
+      if (decidedRef.current || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      gestureRef.current = {
+        startX: t.clientX,
+        startY: t.clientY,
+        lastX: t.clientX,
+        startTime: performance.now(),
+      };
+    };
 
-    // Determine axis after first 6 px of movement
-    if (gestureRef.current.axis === null) {
-      if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
-        gestureRef.current.axis = Math.abs(dx) >= Math.abs(dy) ? "h" : "v";
+    const handleMove = (e: TouchEvent) => {
+      if (!gestureRef.current || decidedRef.current || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      const dx = t.clientX - gestureRef.current.startX;
+
+      // Prevent ALL default browser behaviour (scroll, back-swipe, etc.)
+      e.preventDefault();
+
+      // 1:1 finger → card position
+      x.set(dx);
+      gestureRef.current.lastX = t.clientX;
+    };
+
+    const handleEnd = (e: TouchEvent) => {
+      if (!gestureRef.current || decidedRef.current) return;
+      const g = gestureRef.current;
+      gestureRef.current = null;
+
+      const touch = e.changedTouches[0];
+      const endX = touch?.clientX ?? g.lastX;
+      const endY = touch?.clientY ?? g.startY;
+      const dx = endX - g.startX;
+      const dy = endY - g.startY;
+      const dt = Math.max(performance.now() - g.startTime, 1);
+
+      // Tap → flip card
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && dt < 350) {
+        setFlipped((f) => !f);
+        return;
       }
-      return;
-    }
 
-    if (gestureRef.current.axis !== "h") return; // vertical — let browser scroll
+      settle(dx, (dx / dt) * 1000);
+    };
 
-    // Block page scroll while we own this horizontal gesture
-    e.preventDefault();
+    const handleCancel = () => {
+      gestureRef.current = null;
+      if (!decidedRef.current) snapBack();
+    };
 
-    // 1:1 finger → card
-    x.set(dx);
-    gestureRef.current.lastX = t.clientX;
-  };
+    // CRITICAL: { passive: false } makes preventDefault() actually work
+    el.addEventListener("touchstart",  handleStart,  { passive: false });
+    el.addEventListener("touchmove",   handleMove,   { passive: false });
+    el.addEventListener("touchend",    handleEnd,    { passive: false });
+    el.addEventListener("touchcancel", handleCancel, { passive: false });
 
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (!gestureRef.current || decidedRef.current) return;
-    const g = gestureRef.current;
-    gestureRef.current = null;
+    return () => {
+      el.removeEventListener("touchstart",  handleStart);
+      el.removeEventListener("touchmove",   handleMove);
+      el.removeEventListener("touchend",    handleEnd);
+      el.removeEventListener("touchcancel", handleCancel);
+    };
+  }, [x, settle, snapBack]);
 
-    const touch = e.changedTouches[0];
-    const endX  = touch?.clientX ?? g.lastX;
-    const endY  = touch?.clientY ?? g.startY;
-    const dx = endX - g.startX;
-    const dy = endY - g.startY;
-    const dt = Math.max(performance.now() - g.startTime, 1);
-
-    // Tap → flip
-    if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && dt < 300) {
-      setFlipped((f) => !f);
-      return;
-    }
-
-    if (g.axis !== "h") return; // pure vertical gesture — ignore
-    settle(dx, (dx / dt) * 1000);
-  };
-
-  const onTouchCancel = () => {
-    gestureRef.current = null;
-    if (!decidedRef.current) snapBack();
-  };
-
-  // ── pointer handlers (mouse / stylus on desktop) ──────────────────────────
+  // ── Pointer handlers (mouse / stylus — desktop only) ──────────────────────
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === "touch" || decidedRef.current) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    gestureRef.current = { startX: e.clientX, startY: e.clientY, lastX: e.clientX, startTime: performance.now(), axis: null };
+    gestureRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      lastX: e.clientX,
+      startTime: performance.now(),
+    };
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
     if (e.pointerType === "touch" || !gestureRef.current || decidedRef.current) return;
     const dx = e.clientX - gestureRef.current.startX;
-    const dy = e.clientY - gestureRef.current.startY;
-    if (gestureRef.current.axis === null) {
-      if (Math.abs(dx) > 4 || Math.abs(dy) > 4)
-        gestureRef.current.axis = Math.abs(dx) >= Math.abs(dy) ? "h" : "v";
-      return;
-    }
-    if (gestureRef.current.axis !== "h") return;
     x.set(dx);
     gestureRef.current.lastX = e.clientX;
   };
@@ -337,7 +362,6 @@ function SwipeCard({
       setFlipped((f) => !f);
       return;
     }
-    if (g.axis !== "h") return;
     settle(dx, (dx / dt) * 1000);
   };
 
@@ -348,8 +372,9 @@ function SwipeCard({
 
   return (
     <motion.div
+      ref={cardRef}
       className="absolute inset-0 select-none cursor-grab active:cursor-grabbing"
-      style={{ x, rotate }}
+      style={{ x, rotate, touchAction: "none" }}
       drag={false}
       initial={{ scale: 0.93, opacity: 0, y: 12 }}
       animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -362,10 +387,6 @@ function SwipeCard({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-      onTouchCancel={onTouchCancel}
     >
       {/* Verdict stamps */}
       <motion.div
@@ -381,8 +402,8 @@ function SwipeCard({
         KNOWN
       </motion.div>
 
-      {/* Card flip container */}
-      <div className="relative w-full h-full [perspective:1200px]">
+      {/* Card flip container — pointer-events:none on children so they can't steal touches */}
+      <div className="relative w-full h-full [perspective:1200px] pointer-events-none">
         <motion.div
           className="absolute inset-0 [transform-style:preserve-3d]"
           animate={{ rotateY: flipped ? 180 : 0 }}
@@ -410,12 +431,12 @@ function CardFace({
   const isLong = content.length > 160;
   return (
     <div
-      className={`absolute inset-0 rounded-2xl shadow-xl p-5 flex flex-col text-white bg-gradient-to-br ${gradient} [backface-visibility:hidden] overflow-hidden`}
+      className={`absolute inset-0 rounded-2xl shadow-xl p-5 flex flex-col text-white bg-gradient-to-br ${gradient} [backface-visibility:hidden] overflow-hidden pointer-events-none`}
       style={back ? { transform: "rotateY(180deg)" } : undefined}
     >
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
       <div className="relative text-xs uppercase tracking-wider text-white/80">{label}</div>
-      <div className="relative flex-1 flex items-center justify-center text-center overflow-y-auto py-3">
+      <div className="relative flex-1 flex items-center justify-center text-center overflow-hidden py-3">
         <p
           className={`leading-snug ${isLong ? "text-sm sm:text-base" : "text-xl"}`}
           style={{ wordBreak: "break-word" }}

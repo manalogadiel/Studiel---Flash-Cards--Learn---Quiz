@@ -90,7 +90,7 @@ export default function App() {
               <img
                 src="/app-logo.png"
                 alt="Studiel Logo"
-                className="h-10 w-10 rounded-2xl object-cover shadow-md shrink-0"
+                className="h-10 w-10 shrink-0"
               />
               <div>
                 <div className="font-bold text-base leading-tight tracking-tight flex items-center gap-1.5">

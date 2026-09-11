@@ -37,80 +37,11 @@ function useTheme(): [Theme, () => void] {
 
 function useInstallablePWA() {
   useEffect(() => {
-    const manifest = {
-      name: "Studiel — Flashcards & Quizzes",
-      short_name: "Studiel",
-      start_url: ".",
-      display: "standalone",
-      background_color: "#0f172a",
-      theme_color: "#4f46e5",
-      icons: [
-        {
-          src:
-            "data:image/svg+xml;utf8," +
-            encodeURIComponent(
-              `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='44' fill='%234f46e5'/><text x='50%' y='63%' font-size='105' text-anchor='middle' fill='white' font-family='system-ui, -apple-system, sans-serif' font-weight='800'>S</text></svg>`
-            ),
-          sizes: "192x192",
-          type: "image/svg+xml",
-          purpose: "any maskable",
-        },
-      ],
-    };
-    const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
-    const url = URL.createObjectURL(blob);
-    let link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
-    if (!link) {
-      link = document.createElement("link");
-      link.rel = "manifest";
-      document.head.appendChild(link);
-    }
-    link.href = url;
-
-    let meta = document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-capable"]');
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "apple-mobile-web-app-capable";
-      meta.content = "yes";
-      document.head.appendChild(meta);
-    }
-
-    let vp = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
-    if (!vp) {
-      vp = document.createElement("meta");
-      vp.name = "viewport";
-      vp.content = "width=device-width, initial-scale=1, viewport-fit=cover";
-      document.head.appendChild(vp);
-    }
-
     if ("serviceWorker" in navigator) {
-      const swCode = `
-        const CACHE = 'studiel-v2';
-        self.addEventListener('install', (e) => { self.skipWaiting(); });
-        self.addEventListener('activate', (e) => { e.waitUntil(self.clients.claim()); });
-        self.addEventListener('fetch', (event) => {
-          const req = event.request;
-          if (req.method !== 'GET') return;
-          event.respondWith(
-            caches.open(CACHE).then(async (cache) => {
-              const cached = await cache.match(req);
-              const fetchPromise = fetch(req).then((res) => {
-                if (res && res.status === 200 && res.type === 'basic') {
-                  cache.put(req, res.clone());
-                }
-                return res;
-              }).catch(() => cached);
-              return cached || fetchPromise;
-            })
-          );
-        });
-      `;
-      const swBlob = new Blob([swCode], { type: "application/javascript" });
-      const swUrl = URL.createObjectURL(swBlob);
-      navigator.serviceWorker.register(swUrl).catch(() => {});
+      navigator.serviceWorker
+        .register("/sw.js")
+        .catch((err) => console.log("SW registration failed", err));
     }
-
-    return () => URL.revokeObjectURL(url);
   }, []);
 }
 
@@ -123,8 +54,11 @@ export default function App() {
     getActiveSubjectId(subjects)
   );
 
+  // Sync active subject when subjects change
   const activeSubject =
-    subjects.find((s) => s.id === activeSubjectId) || subjects[0];
+    subjects.find((s) => s.id === activeSubjectId) ?? subjects[0] ?? DEFAULT_SUBJECTS[0];
+
+  const [mode, setMode] = useState<Mode>("flashcards");
 
   const handleSelectSubject = (id: string) => {
     setActiveSubjectIdState(id);
@@ -159,9 +93,6 @@ export default function App() {
               <div>
                 <div className="font-bold text-base leading-tight tracking-tight flex items-center gap-1.5">
                   Studiel
-                  <span className="text-[10px] uppercase font-semibold tracking-wider bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
-                    PWA
-                  </span>
                 </div>
                 <div className="text-[11px] text-muted-foreground leading-tight">
                   Smart Flashcards & Quizzes

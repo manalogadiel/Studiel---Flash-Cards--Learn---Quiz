@@ -46,11 +46,7 @@ export function InstallButton() {
   };
 
   if (installed) {
-    return (
-      <Button variant="ghost" size="sm" className="gap-1.5 text-green-500" disabled>
-        <Check className="h-4 w-4" /> Installed
-      </Button>
-    );
+    return null;
   }
 
   return (

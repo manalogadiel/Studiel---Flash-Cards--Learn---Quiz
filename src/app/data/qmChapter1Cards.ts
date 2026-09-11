@@ -233,4 +233,151 @@ export const qmChapter1Cards: Flashcard[] = [
     definition:
       "Competitive markets; bad attitudes; lack of quality leadership; deficiency of cultural dynamism; inadequate resources; lack of customer focus; poor measurement; poor planning; lack of management commitment; workforce resistance; inadequate training.",
   },
+
+  // Guru Principles Commonly Applied
+  {
+    id: 541,
+    term: "Guru Principles Commonly Applied",
+    definition:
+      "Deming: 14 Points, System Thinking, SPC; Juran: Quality Trilogy, Pareto Principle; Crosby: Zero Defects, Quality is Free; Ishikawa: Fishbone Diagrams, Quality Circles; Taguchi: Robust Design, Loss Function.",
+  },
+  {
+    id: 542,
+    term: "Deming - Commonly Applied Principles",
+    definition: "14 Points, System Thinking, SPC.",
+  },
+  {
+    id: 543,
+    term: "Juran - Commonly Applied Principles",
+    definition: "Quality Trilogy, Pareto Principle.",
+  },
+  {
+    id: 544,
+    term: "Crosby - Commonly Applied Principles",
+    definition: "Zero Defects, Quality is Free.",
+  },
+  {
+    id: 545,
+    term: "Ishikawa - Commonly Applied Principles",
+    definition: "Fishbone Diagrams, Quality Circles.",
+  },
+  {
+    id: 546,
+    term: "Taguchi - Commonly Applied Principles",
+    definition: "Robust Design, Loss Function.",
+  },
+
+  // Key Elements of the Organization Model Approach
+  {
+    id: 547,
+    term: "Key Elements of the Organization Model Approach",
+    definition:
+      "1) Mission Orientation; 2) Transformative Leadership; 3) Quality Relationships; 4) Employee Engagement; 5) Innovation Culture.",
+  },
+  {
+    id: 548,
+    term: "Mission Orientation (Organization Model Approach)",
+    definition: "Clear goals and strategic direction.",
+  },
+  {
+    id: 549,
+    term: "Transformative Leadership (Organization Model Approach)",
+    definition: "Leaders who drive change and inspire teams.",
+  },
+  {
+    id: 550,
+    term: "Quality Relationships (Organization Model Approach)",
+    definition: "Collaboration and trust across departments.",
+  },
+  {
+    id: 551,
+    term: "Employee Engagement (Organization Model Approach)",
+    definition: "Involvement in decision-making and improvement.",
+  },
+  {
+    id: 552,
+    term: "Innovation Culture (Organization Model Approach)",
+    definition: "Encouraging new ideas and adaptive systems.",
+  },
+
+  // Key Japanese TQM Concepts
+  {
+    id: 553,
+    term: "Key Japanese TQM Concepts",
+    definition:
+      "Kaizen (continuous improvement), Quality Circles (problem-solving teams), Jidoka (automation with human touch), Just-in-Time (inventory/production efficiency), PDCA Cycle (Plan-Do-Check-Act), and Ishikawa Tools (cause-and-effect diagrams, Pareto charts).",
+  },
+  {
+    id: 554,
+    term: "Kaizen (Japanese TQM Concept)",
+    definition: "Continuous, incremental improvement.",
+  },
+  {
+    id: 555,
+    term: "Quality Circles (Japanese TQM Concept)",
+    definition: "Small group problem-solving teams.",
+  },
+  {
+    id: 556,
+    term: "Jidoka (Japanese TQM Concept)",
+    definition: "Automation with human touch (stop to fix issues).",
+  },
+  {
+    id: 557,
+    term: "Just-in-Time (Japanese TQM Concept)",
+    definition: "Inventory and production efficiency.",
+  },
+  {
+    id: 558,
+    term: "PDCA Cycle (Japanese TQM Concept)",
+    definition: "Plan-Do-Check-Act for process improvement.",
+  },
+  {
+    id: 559,
+    term: "Ishikawa Tools (Japanese TQM Concept)",
+    definition: "Cause-and-effect diagrams, Pareto charts.",
+  },
+
+  // Core Elements of the Philippine Quality Award (PQA) Criteria
+  {
+    id: 560,
+    term: "Core Elements of the Philippine Quality Award (PQA) Criteria",
+    definition:
+      "1) Leadership; 2) Strategy; 3) Customer; 4) Measurement & Knowledge; 5) Workforce; 6) Operations; 7) Results.",
+  },
+  {
+    id: 561,
+    term: "Leadership (PQA Criteria)",
+    definition: "Vision, values, and governance.",
+  },
+  {
+    id: 562,
+    term: "Strategy (PQA Criteria)",
+    definition: "Strategic planning and deployment.",
+  },
+  {
+    id: 563,
+    term: "Customer (PQA Criteria)",
+    definition: "Customer engagement and satisfaction.",
+  },
+  {
+    id: 564,
+    term: "Measurement & Knowledge (PQA Criteria)",
+    definition: "Data analysis, performance tracking.",
+  },
+  {
+    id: 565,
+    term: "Workforce (PQA Criteria)",
+    definition: "Employee engagement, capability building.",
+  },
+  {
+    id: 566,
+    term: "Operations (PQA Criteria)",
+    definition: "Process management and improvement.",
+  },
+  {
+    id: 567,
+    term: "Results (PQA Criteria)",
+    definition: "Product, customer, workforce, and financial outcomes.",
+  },
 ];

@@ -32,6 +32,10 @@ function useTheme(): [Theme, () => void] {
     const root = document.documentElement;
     root.classList.toggle("dark", theme === "dark");
     localStorage.setItem("fc-theme", theme);
+    const themeColorMetas = document.querySelectorAll('meta[name="theme-color"]');
+    themeColorMetas.forEach((meta) => {
+      meta.setAttribute("content", theme === "dark" ? "#18181b" : "#ffffff");
+    });
   }, [theme]);
 
   return [theme, () => setTheme((t) => (t === "dark" ? "light" : "dark"))];
@@ -86,7 +90,7 @@ export default function App() {
   return (
     <div className="size-full bg-background text-foreground min-h-screen flex justify-center">
       <div className="w-full max-w-md flex flex-col">
-        <header className="sticky top-0 z-20 bg-background/90 backdrop-blur border-b px-4 py-2.5 flex flex-col gap-2">
+        <header className="sticky top-0 z-20 bg-background/90 backdrop-blur border-b px-4 pb-2.5 ios-header flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <img
@@ -126,7 +130,7 @@ export default function App() {
           onValueChange={(v) => setMode(v as Mode)}
           className="flex flex-col flex-1"
         >
-          <main className="flex-1 pt-4">
+          <main className="flex-1 pt-4 pb-[calc(5rem+env(safe-area-inset-bottom,0px))]">
             <TabsContent value="flashcards" className="mt-0">
               <FlashcardMode cards={activeSubject.cards} />
             </TabsContent>
@@ -141,7 +145,7 @@ export default function App() {
             </TabsContent>
           </main>
 
-          <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-background/95 backdrop-blur border-t z-20">
+          <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-background/95 backdrop-blur border-t z-20 ios-nav">
             <TabsList className="grid grid-cols-4 w-full h-16 bg-transparent p-0 rounded-none">
               <TabsTrigger
                 value="flashcards"

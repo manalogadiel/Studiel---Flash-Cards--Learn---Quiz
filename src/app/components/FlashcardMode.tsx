@@ -33,10 +33,11 @@ type Props = {
 export function FlashcardMode({ cards = ALL }: Props) {
   const [definitionFirst, setDefinitionFirst] = useState(false);
   const [shuffled, setShuffled] = useState(true);
-  const [stack, setStack] = useState<Flashcard[]>(() => shuffle(cards));
+  const [stack, setStack] = useState<Flashcard[]>(() => (shuffled ? shuffle(cards) : [...cards]));
   const [known, setKnown] = useState(0);
   const [unknown, setUnknown] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [cardStep, setCardStep] = useState(0);
 
   useEffect(() => {
     rebuild(shuffled);
@@ -48,6 +49,7 @@ export function FlashcardMode({ cards = ALL }: Props) {
     setKnown(0);
     setUnknown(0);
     setFinished(false);
+    setCardStep(0);
   };
 
   const onToggleShuffle = (checked: boolean) => {
@@ -56,37 +58,50 @@ export function FlashcardMode({ cards = ALL }: Props) {
   };
 
   const handleDecision = (isKnown: boolean) => {
-    if (isKnown) setKnown((k) => k + 1);
-    else setUnknown((u) => u + 1);
+    setCardStep((s) => s + 1);
 
-    setStack((prev) => {
-      const next = prev.slice(1);
-      if (next.length === 0) setFinished(true);
-      return next;
-    });
+    if (isKnown) {
+      setKnown((k) => k + 1);
+      setStack((prev) => {
+        const next = prev.slice(1);
+        if (next.length === 0) setFinished(true);
+        return next;
+      });
+    } else {
+      // Swiped left / unknown: move card to the END of the deck so it repeats later
+      setUnknown((u) => u + 1);
+      setStack((prev) => {
+        if (prev.length <= 1) return [...prev];
+        const [currentCard, ...rest] = prev;
+        return [...rest, currentCard];
+      });
+    }
   };
 
   const total = cards.length;
   const current = stack[0];
-  const seen = total - stack.length;
-  const progress = useMemo(() => (seen / Math.max(total, 1)) * 100, [seen, total]);
+  const remaining = stack.length;
+  const mastered = Math.max(0, total - remaining);
+  const progress = useMemo(() => (mastered / Math.max(total, 1)) * 100, [mastered, total]);
 
   if (finished || !current) {
-    const pct = Math.round((known / Math.max(total, 1)) * 100);
     return (
       <div className="flex flex-col items-center justify-center gap-6 p-8 text-center min-h-[60vh]">
-        <div className="rounded-full bg-primary/10 p-6">
-          <Check className="h-12 w-12 text-primary" />
+        <div className="rounded-full bg-green-500/10 p-6 text-green-500">
+          <Check className="h-12 w-12" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold">Deck Completed!</h2>
+          <h2 className="text-2xl font-bold">All Cards Mastered! 🎉</h2>
           <p className="text-muted-foreground">
-            You remembered <span className="font-semibold text-green-500">{known}</span> out of{" "}
-            {total} terms ({pct}%).
+            You successfully completed all <span className="font-semibold text-foreground">{total}</span> terms.
           </p>
-          {unknown > 0 && (
+          {unknown > 0 ? (
             <p className="text-sm text-muted-foreground">
-              {unknown} terms were marked as needing more practice.
+              You reviewed repeated cards <span className="text-amber-500 font-semibold">{unknown}</span> times until you got every single one correct. Great persistence!
+            </p>
+          ) : (
+            <p className="text-sm text-emerald-500 font-medium">
+              Flawless! You mastered every card on the first try!
             </p>
           )}
         </div>
@@ -141,10 +156,17 @@ export function FlashcardMode({ cards = ALL }: Props) {
 
       <div className="space-y-1">
         <div className="flex justify-between text-sm text-muted-foreground">
-          <span>{seen} / {total}</span>
           <span>
-            <span className="text-green-500">✓ {known}</span> ·{" "}
-            <span className="text-red-500">✗ {unknown}</span>
+            Mastered: <strong className="text-foreground">{mastered}</strong> / {total}
+            {remaining > 0 && <span className="ml-1 text-xs">({remaining} left)</span>}
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="text-green-500 font-medium">✓ {known}</span>
+            {unknown > 0 && (
+              <span className="text-amber-500 text-xs font-medium" title="Cards sent to back for review">
+                ↺ {unknown} repeated
+              </span>
+            )}
           </span>
         </div>
         <Progress value={progress} />
@@ -157,7 +179,7 @@ export function FlashcardMode({ cards = ALL }: Props) {
       >
         <AnimatePresence mode="popLayout" initial={false}>
           <SwipeCard
-            key={current.id}
+            key={`${current.id}-${cardStep}`}
             card={current}
             definitionFirst={definitionFirst}
             onDecision={handleDecision}
@@ -166,7 +188,7 @@ export function FlashcardMode({ cards = ALL }: Props) {
       </div>
 
       <p className="text-center text-sm text-muted-foreground">
-        Tap to flip · Swipe right if known, left if unknown
+        Tap to flip · Swipe right if known · Swipe left to repeat later
       </p>
 
       <div className="flex justify-center gap-6">
@@ -390,10 +412,10 @@ function SwipeCard({
     >
       {/* Verdict stamps */}
       <motion.div
-        className="absolute top-6 left-6 z-20 rounded-md border-2 border-red-400 px-3 py-1 text-red-100 bg-red-500/30 font-bold rotate-[-12deg] pointer-events-none"
+        className="absolute top-6 left-6 z-20 rounded-md border-2 border-amber-400 px-3 py-1 text-amber-100 bg-amber-500/40 font-bold rotate-[-12deg] pointer-events-none"
         style={{ opacity: nopeOpacity }}
       >
-        UNKNOWN
+        REPEAT LATER
       </motion.div>
       <motion.div
         className="absolute top-6 right-6 z-20 rounded-md border-2 border-green-300 px-3 py-1 text-green-50 bg-green-500/30 font-bold rotate-[12deg] pointer-events-none"

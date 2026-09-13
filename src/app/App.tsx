@@ -10,6 +10,7 @@ import { IdentificationMode } from "./components/IdentificationMode";
 import { SubjectManager } from "./components/SubjectManager";
 import {
   type Subject,
+  DEFAULT_SUBJECTS,
   loadStoredSubjects,
   saveStoredSubjects,
   getActiveSubjectId,
@@ -17,6 +18,7 @@ import {
 } from "./data/subjects";
 
 type Theme = "light" | "dark";
+type Mode = "flashcards" | "quiz" | "identify" | "table";
 
 function useTheme(): [Theme, () => void] {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -119,7 +121,11 @@ export default function App() {
           </div>
         </header>
 
-        <Tabs defaultValue="flashcards" className="flex flex-col flex-1">
+        <Tabs
+          value={mode}
+          onValueChange={(v) => setMode(v as Mode)}
+          className="flex flex-col flex-1"
+        >
           <main className="flex-1 pt-4">
             <TabsContent value="flashcards" className="mt-0">
               <FlashcardMode cards={activeSubject.cards} />

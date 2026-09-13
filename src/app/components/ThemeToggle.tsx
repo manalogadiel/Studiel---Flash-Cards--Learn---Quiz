@@ -6,25 +6,18 @@ type Props = { theme: "light" | "dark"; onToggle: () => void };
 export function ThemeToggle({ theme, onToggle }: Props) {
   return (
     <Button
-      variant="outline"
-      size="sm"
+      variant="ghost"
+      size="icon"
       onClick={onToggle}
-      className="h-8 px-2.5 gap-1.5 rounded-full text-xs font-medium border-border/80 bg-background/50 hover:bg-accent transition-colors shadow-none"
-      aria-label="Toggle light or dark theme"
+      className="h-9 w-9 rounded-full"
+      aria-label="Toggle theme"
       title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
       {theme === "dark" ? (
-        <>
-          <Sun className="h-3.5 w-3.5 text-amber-400" />
-          <span>Light</span>
-        </>
+        <Sun className="h-4 w-4 text-amber-400" />
       ) : (
-        <>
-          <Moon className="h-3.5 w-3.5 text-slate-700" />
-          <span>Dark</span>
-        </>
+        <Moon className="h-4 w-4 text-slate-700" />
       )}
     </Button>
   );
 }
-

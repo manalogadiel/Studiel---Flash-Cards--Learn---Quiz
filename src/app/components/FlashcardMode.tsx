@@ -32,7 +32,7 @@ type Props = {
 
 export function FlashcardMode({ cards = ALL }: Props) {
   const [definitionFirst, setDefinitionFirst] = useState(false);
-  const [shuffled, setShuffled] = useState(true);
+  const [shuffled, setShuffled] = useState(false);
   const [stack, setStack] = useState<Flashcard[]>(() => (shuffled ? shuffle(cards) : [...cards]));
   const [known, setKnown] = useState(0);
   const [unknown, setUnknown] = useState(0);

@@ -5,7 +5,6 @@ import { ThemeToggle } from "./components/ThemeToggle";
 import { TableMode } from "./components/TableMode";
 import { FlashcardMode } from "./components/FlashcardMode";
 import { QuizMode } from "./components/QuizMode";
-import { InstallButton } from "./components/InstallButton";
 import { IdentificationMode } from "./components/IdentificationMode";
 import { SubjectManager } from "./components/SubjectManager";
 import {
@@ -108,7 +107,6 @@ export default function App() {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <InstallButton />
               <ThemeToggle theme={theme} onToggle={toggleTheme} />
             </div>
           </div>

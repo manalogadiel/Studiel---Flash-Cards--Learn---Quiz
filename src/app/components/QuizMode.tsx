@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { flashcards as ALL, type Flashcard } from "../data/flashcards";
@@ -52,27 +52,29 @@ export function QuizMode({ cards = ALL }: Props) {
     setDone(false);
   }, [cards]);
 
-  const q = questions[idx];
   const total = questions.length;
-  const progress = useMemo(() => (idx / Math.max(total, 1)) * 100, [idx, total]);
+  const safeIdx = Math.min(idx, Math.max(0, total - 1));
+  const q = questions[safeIdx];
+  const progress = useMemo(() => (safeIdx / Math.max(total, 1)) * 100, [safeIdx, total]);
 
   useEffect(() => {
     setSelected(null);
-  }, [idx]);
+  }, [safeIdx]);
 
   const onSelect = useCallback((cardId: number) => {
+    if (!q) return;
     setSelected((prev) => {
       if (prev !== null) return prev;
       if (cardId === q.card.id) setScore((s) => s + 1);
       else setWrong((w) => w + 1);
       return cardId;
     });
-  }, [q?.card?.id]);
+  }, [q]);
 
   const next = useCallback(() => {
-    if (idx + 1 >= total) setDone(true);
+    if (safeIdx + 1 >= total) setDone(true);
     else setIdx((i) => i + 1);
-  }, [idx, total]);
+  }, [safeIdx, total]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -138,7 +140,7 @@ export function QuizMode({ cards = ALL }: Props) {
       <div className="space-y-1">
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>
-            Question {idx + 1} / {total}
+            Question {safeIdx + 1} / {total}
           </span>
           <span>
             <span className="text-green-500 font-medium">✓ {score}</span> ·{" "}
@@ -191,7 +193,7 @@ export function QuizMode({ cards = ALL }: Props) {
 
       {selected !== null && (
         <Button onClick={next} size="lg" className="mt-2 h-12 text-base font-medium">
-          {idx + 1 >= total ? "See results" : "Next question"}
+          {safeIdx + 1 >= total ? "See results" : "Next question"}
           <span className="hidden md:inline ml-1 text-xs opacity-75">(Enter)</span>
         </Button>
       )}

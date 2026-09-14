@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { Check, RotateCcw, X, Eye } from "lucide-react";
 import { Button } from "./ui/button";
@@ -39,15 +39,17 @@ type Result = { card: Flashcard; answer: string; correct: boolean; revealed: boo
 
 type Props = {
   cards?: Flashcard[];
+  isActive?: boolean;
 };
 
-export function IdentificationMode({ cards = ALL }: Props) {
+export function IdentificationMode({ cards = ALL, isActive = true }: Props) {
   const [deck, setDeck] = useState<Flashcard[]>(() => shuffle(cards));
   const [idx, setIdx] = useState(0);
   const [answer, setAnswer] = useState("");
   const [state, setState] = useState<"input" | "correct" | "wrong" | "revealed">("input");
   const [results, setResults] = useState<Result[]>([]);
   const [done, setDone] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setDeck(shuffle(cards));
@@ -58,8 +60,9 @@ export function IdentificationMode({ cards = ALL }: Props) {
     setDone(false);
   }, [cards]);
 
-  const card = deck[idx];
   const total = deck.length;
+  const safeIdx = Math.min(idx, Math.max(0, total - 1));
+  const card = deck[safeIdx];
   const correctCount = results.filter((r) => r.correct).length;
   const wrongCount = results.length - correctCount;
   const progress = useMemo(() => (results.length / Math.max(total, 1)) * 100, [results.length, total]);
@@ -67,7 +70,13 @@ export function IdentificationMode({ cards = ALL }: Props) {
   useEffect(() => {
     setAnswer("");
     setState("input");
-  }, [idx]);
+  }, [safeIdx]);
+
+  useEffect(() => {
+    if (isActive && state === "input") {
+      inputRef.current?.focus();
+    }
+  }, [isActive, state, safeIdx]);
 
   const submit = () => {
     if (!card || state !== "input") return;
@@ -88,7 +97,7 @@ export function IdentificationMode({ cards = ALL }: Props) {
       ...r,
       { card, answer, correct, revealed: state === "revealed" },
     ]);
-    if (idx + 1 >= total) setDone(true);
+    if (safeIdx + 1 >= total) setDone(true);
     else setIdx((i) => i + 1);
   };
 
@@ -166,7 +175,7 @@ export function IdentificationMode({ cards = ALL }: Props) {
       <div className="space-y-1">
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>
-            {idx + 1} / {total}
+            {safeIdx + 1} / {total}
           </span>
           <span>
             <span className="text-green-500 font-medium">✓ {correctCount}</span> ·{" "}
@@ -192,11 +201,11 @@ export function IdentificationMode({ cards = ALL }: Props) {
         className="flex flex-col gap-3"
       >
         <Input
+          ref={inputRef}
           placeholder="Type the term..."
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
           disabled={state !== "input"}
-          autoFocus
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
@@ -262,7 +271,7 @@ export function IdentificationMode({ cards = ALL }: Props) {
             </>
           ) : (
             <Button type="submit" className="w-full h-11 md:h-12 text-base font-medium">
-              {idx + 1 >= total ? "See results" : "Next"}
+              {safeIdx + 1 >= total ? "See results" : "Next"}
             </Button>
           )}
         </div>

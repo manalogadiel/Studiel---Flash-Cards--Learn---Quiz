@@ -33,9 +33,10 @@ function buildQuestions(deck: Flashcard[]): Question[] {
 
 type Props = {
   cards?: Flashcard[];
+  isActive?: boolean;
 };
 
-export function QuizMode({ cards = ALL }: Props) {
+export function QuizMode({ cards = ALL, isActive = true }: Props) {
   const [questions, setQuestions] = useState<Question[]>(() => buildQuestions(cards));
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -77,6 +78,7 @@ export function QuizMode({ cards = ALL }: Props) {
   }, [safeIdx, total]);
 
   useEffect(() => {
+    if (!isActive) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
       if (selected === null && q?.choices) {
@@ -94,7 +96,7 @@ export function QuizMode({ cards = ALL }: Props) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selected, q, next, onSelect]);
+  }, [isActive, selected, q, next, onSelect]);
 
   const restart = () => {
     setQuestions(buildQuestions(cards));

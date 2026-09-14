@@ -132,16 +132,16 @@ export default function App() {
           className="flex flex-col flex-1"
         >
           <main className="flex-1 pt-4 md:pt-6 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-28">
-            <TabsContent value="flashcards" className="mt-0">
-              <FlashcardMode cards={activeSubject.cards} />
+            <TabsContent value="flashcards" forceMount className="mt-0 data-[state=inactive]:hidden">
+              <FlashcardMode cards={activeSubject.cards} isActive={mode === "flashcards"} />
             </TabsContent>
-            <TabsContent value="quiz" className="mt-0">
-              <QuizMode cards={activeSubject.cards} />
+            <TabsContent value="quiz" forceMount className="mt-0 data-[state=inactive]:hidden">
+              <QuizMode cards={activeSubject.cards} isActive={mode === "quiz"} />
             </TabsContent>
-            <TabsContent value="identify" className="mt-0">
-              <IdentificationMode cards={activeSubject.cards} />
+            <TabsContent value="identify" forceMount className="mt-0 data-[state=inactive]:hidden">
+              <IdentificationMode cards={activeSubject.cards} isActive={mode === "identify"} />
             </TabsContent>
-            <TabsContent value="table" className="mt-0">
+            <TabsContent value="table" forceMount className="mt-0 data-[state=inactive]:hidden">
               <TableMode cards={activeSubject.cards} />
             </TabsContent>
           </main>

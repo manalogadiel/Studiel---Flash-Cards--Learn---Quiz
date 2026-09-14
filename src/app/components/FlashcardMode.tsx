@@ -28,9 +28,10 @@ const gradientFor = (id: number) => GRADIENTS[Math.floor(id) % GRADIENTS.length]
 
 type Props = {
   cards?: Flashcard[];
+  isActive?: boolean;
 };
 
-export function FlashcardMode({ cards = ALL }: Props) {
+export function FlashcardMode({ cards = ALL, isActive = true }: Props) {
   const [definitionFirst, setDefinitionFirst] = useState(false);
   const [shuffled, setShuffled] = useState(false);
   const [stack, setStack] = useState<Flashcard[]>(() => (shuffled ? shuffle(cards) : [...cards]));
@@ -79,6 +80,7 @@ export function FlashcardMode({ cards = ALL }: Props) {
   }, []);
 
   useEffect(() => {
+    if (!isActive) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
         document.activeElement?.tagName === "INPUT" ||
@@ -99,7 +101,7 @@ export function FlashcardMode({ cards = ALL }: Props) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleDecision]);
+  }, [isActive, handleDecision]);
 
   const total = cards.length;
   const current = stack[0];

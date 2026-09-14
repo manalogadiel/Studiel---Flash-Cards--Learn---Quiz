@@ -170,7 +170,7 @@ export function SubjectManager({
         <DialogTrigger asChild>
           <button
             type="button"
-            className="flex items-center gap-2 p-1.5 px-2.5 rounded-lg border bg-muted/40 hover:bg-muted/80 text-left transition max-w-[200px] truncate"
+            className="flex items-center gap-2 p-1.5 px-2.5 rounded-lg border bg-muted/40 hover:bg-muted/80 text-left transition max-w-[200px] sm:max-w-xs md:max-w-sm truncate"
             title="Switch subject"
           >
             <div className="flex flex-col min-w-0">
@@ -193,7 +193,7 @@ export function SubjectManager({
           </button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-md p-5 max-h-[85vh] flex flex-col">
+        <DialogContent className="max-w-md sm:max-w-lg md:max-w-xl p-5 md:p-6 max-h-[85vh] flex flex-col">
           <DialogHeader className="pb-2">
             <DialogTitle className="flex items-center gap-2 text-lg">
               <BookOpen className="h-5 w-5 text-primary" />
@@ -299,7 +299,7 @@ export function SubjectManager({
 
       {/* Add New Subject Dialog */}
       <Dialog open={openAdd} onOpenChange={setOpenAdd}>
-        <DialogContent className="max-w-lg p-5 max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl p-5 md:p-6 max-h-[90vh] flex flex-col">
           <DialogHeader className="pb-1">
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -382,7 +382,7 @@ export function SubjectManager({
                 </TabsList>
 
                 <TabsContent value="manual" className="space-y-2 mt-2">
-                  <div className="space-y-1.5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <Input
                       placeholder="Term or Concept (e.g. Polymorphism)"
                       value={currentTerm}
@@ -393,7 +393,7 @@ export function SubjectManager({
                           handleAddSingleCard();
                         }
                       }}
-                      className="h-9 text-sm"
+                      className="h-9 md:h-10 text-sm"
                     />
                     <Textarea
                       placeholder="Definition, explanation, or answer..."

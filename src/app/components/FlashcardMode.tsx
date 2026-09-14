@@ -57,7 +57,7 @@ export function FlashcardMode({ cards = ALL }: Props) {
     rebuild(checked);
   };
 
-  const handleDecision = (isKnown: boolean) => {
+  const handleDecision = useCallback((isKnown: boolean) => {
     setCardStep((s) => s + 1);
 
     if (isKnown) {
@@ -76,7 +76,30 @@ export function FlashcardMode({ cards = ALL }: Props) {
         return [...rest, currentCard];
       });
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handleDecision(false);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleDecision(true);
+      } else if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent("studiel:flip-card"));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleDecision]);
 
   const total = cards.length;
   const current = stack[0];
@@ -123,7 +146,7 @@ export function FlashcardMode({ cards = ALL }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-4 px-4 pb-20 select-none">
+    <div className="flex flex-col gap-4 px-4 md:px-6 pb-20 select-none max-w-2xl mx-auto w-full">
       {/* Controls Bar */}
       <div className="flex items-center justify-between gap-2 flex-wrap text-sm">
         <div className="flex items-center gap-4">
@@ -174,7 +197,7 @@ export function FlashcardMode({ cards = ALL }: Props) {
 
       {/* Card area — touch-action:none tells the browser we handle ALL touches */}
       <div
-        className="relative h-[60vh] max-h-[480px] min-h-[320px] flex items-center justify-center"
+        className="relative h-[55vh] md:h-[460px] max-h-[520px] min-h-[320px] max-w-xl mx-auto w-full flex items-center justify-center"
         style={{ touchAction: "none" }}
       >
         <AnimatePresence mode="popLayout" initial={false}>
@@ -191,23 +214,33 @@ export function FlashcardMode({ cards = ALL }: Props) {
         Tap to flip · Swipe right if known · Swipe left to repeat later
       </p>
 
-      <div className="flex justify-center gap-6">
-        <Button
-          variant="outline"
-          size="lg"
-          className="rounded-full h-16 w-16 border-red-500/40 text-red-500 hover:bg-red-500/10 hover:text-red-500"
-          onClick={() => handleDecision(false)}
-        >
-          <X className="h-6 w-6" />
-        </Button>
-        <Button
-          variant="outline"
-          size="lg"
-          className="rounded-full h-16 w-16 border-green-500/40 text-green-500 hover:bg-green-500/10 hover:text-green-500"
-          onClick={() => handleDecision(true)}
-        >
-          <Check className="h-6 w-6" />
-        </Button>
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex justify-center gap-6">
+          <div className="flex flex-col items-center gap-1">
+            <Button
+              variant="outline"
+              size="lg"
+              className="rounded-full h-16 w-16 border-red-500/40 text-red-500 hover:bg-red-500/10 hover:text-red-500"
+              onClick={() => handleDecision(false)}
+              title="Repeat later (← Arrow)"
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            <span className="text-[11px] text-muted-foreground hidden md:inline">← Repeat</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <Button
+              variant="outline"
+              size="lg"
+              className="rounded-full h-16 w-16 border-green-500/40 text-green-500 hover:bg-green-500/10 hover:text-green-500"
+              onClick={() => handleDecision(true)}
+              title="Known (→ Arrow)"
+            >
+              <Check className="h-6 w-6" />
+            </Button>
+            <span className="text-[11px] text-muted-foreground hidden md:inline">Known →</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -234,6 +267,12 @@ function SwipeCard({
 }) {
   const [flipped, setFlipped] = useState(false);
   const [exitDir, setExitDir] = useState(0);
+
+  useEffect(() => {
+    const onFlipEvent = () => setFlipped((f) => !f);
+    window.addEventListener("studiel:flip-card", onFlipEvent);
+    return () => window.removeEventListener("studiel:flip-card", onFlipEvent);
+  }, []);
 
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-220, 220], [-18, 18]);
@@ -401,9 +440,9 @@ function SwipeCard({
       initial={{ scale: 0.93, opacity: 0, y: 12 }}
       animate={{ scale: 1, opacity: 1, y: 0 }}
       exit={{
-        x: exitDir === 0 ? 0 : exitDir * 600,
+        x: exitDir === 0 ? 0 : exitDir * 800,
         opacity: 0,
-        transition: { duration: 0.2, ease: "easeOut" },
+        transition: { duration: 0.22, ease: "easeOut" },
       }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -453,20 +492,28 @@ function CardFace({
   const isLong = content.length > 160;
   return (
     <div
-      className={`absolute inset-0 rounded-2xl shadow-xl p-5 flex flex-col text-white bg-gradient-to-br ${gradient} [backface-visibility:hidden] overflow-hidden pointer-events-none`}
+      className={`absolute inset-0 rounded-2xl shadow-xl p-6 md:p-8 flex flex-col text-white bg-gradient-to-br ${gradient} [backface-visibility:hidden] overflow-hidden pointer-events-none`}
       style={back ? { transform: "rotateY(180deg)" } : undefined}
     >
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
-      <div className="relative text-xs uppercase tracking-wider text-white/80">{label}</div>
+      <div className="relative text-xs md:text-sm uppercase tracking-wider text-white/80 font-medium">
+        {label}
+      </div>
       <div className="relative flex-1 flex items-center justify-center text-center overflow-hidden py-3">
         <p
-          className={`leading-snug ${isLong ? "text-sm sm:text-base" : "text-xl"}`}
+          className={`leading-relaxed ${
+            isLong
+              ? "text-sm sm:text-base md:text-lg font-normal"
+              : "text-xl sm:text-2xl md:text-3xl font-semibold"
+          }`}
           style={{ wordBreak: "break-word" }}
         >
           {content}
         </p>
       </div>
-      <div className="relative text-xs text-center text-white/70">Tap to flip</div>
+      <div className="relative text-xs md:text-sm text-center text-white/70">
+        Tap to flip <span className="hidden md:inline">· [Space]</span>
+      </div>
     </div>
   );
 }

@@ -114,42 +114,46 @@ export function IdentificationMode({ cards = ALL }: Props) {
   if (done) {
     const pct = Math.round((correctCount / total) * 100);
     return (
-      <div className="px-4 pb-24 flex flex-col gap-4 pt-6">
+      <div className="px-4 md:px-6 pb-24 flex flex-col gap-4 pt-6 max-w-3xl mx-auto w-full">
         <div className="text-center flex flex-col gap-2 items-center">
           <div className="text-6xl">{pct >= 80 ? "🏆" : pct >= 50 ? "👍" : "📚"}</div>
-          <h2>Identification complete!</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl font-bold">Identification complete!</h2>
+          <p className="text-muted-foreground text-base">
             {correctCount} / {total} correct ({pct}%)
           </p>
           <Button onClick={restart} className="gap-2 mt-2">
             <RotateCcw className="h-4 w-4" /> Try again
           </Button>
         </div>
-        <div className="flex flex-col gap-2 mt-2">
-          <h3 className="text-sm text-muted-foreground">Review your answers</h3>
-          {results.map((r, i) => (
-            <div
-              key={i}
-              className={`rounded-xl border p-3 ${
-                r.correct ? "border-green-500/40 bg-green-500/5" : "border-red-500/40 bg-red-500/5"
-              }`}
-            >
-              <div className="text-xs text-muted-foreground mb-1">{r.card.definition}</div>
-              <div className="flex items-center justify-between gap-2">
-                <div className="font-medium">{r.card.term}</div>
-                {r.correct ? (
-                  <Check className="h-4 w-4 text-green-500 shrink-0" />
-                ) : (
-                  <X className="h-4 w-4 text-red-500 shrink-0" />
+        <div className="flex flex-col gap-2 mt-4">
+          <h3 className="text-sm font-medium text-muted-foreground">Review your answers</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {results.map((r, i) => (
+              <div
+                key={i}
+                className={`rounded-xl border p-3.5 flex flex-col justify-between ${
+                  r.correct ? "border-green-500/40 bg-green-500/5" : "border-red-500/40 bg-red-500/5"
+                }`}
+              >
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1 leading-snug">{r.card.definition}</div>
+                  <div className="flex items-center justify-between gap-2 mt-2">
+                    <div className="font-semibold text-sm md:text-base">{r.card.term}</div>
+                    {r.correct ? (
+                      <Check className="h-4 w-4 text-green-500 shrink-0" />
+                    ) : (
+                      <X className="h-4 w-4 text-red-500 shrink-0" />
+                    )}
+                  </div>
+                </div>
+                {!r.correct && (
+                  <div className="text-xs text-muted-foreground mt-1.5 pt-1.5 border-t border-border/40">
+                    Your answer: {r.answer ? <span className="text-foreground font-medium">{r.answer}</span> : <em>(skipped)</em>}
+                  </div>
                 )}
               </div>
-              {!r.correct && (
-                <div className="text-xs text-muted-foreground mt-1">
-                  Your answer: {r.answer || <em>(skipped)</em>}
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -158,25 +162,25 @@ export function IdentificationMode({ cards = ALL }: Props) {
   if (!card) return null;
 
   return (
-    <div className="px-4 pb-24 flex flex-col gap-4">
+    <div className="px-4 md:px-6 pb-24 flex flex-col gap-4 max-w-2xl mx-auto w-full">
       <div className="space-y-1">
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>
             {idx + 1} / {total}
           </span>
           <span>
-            <span className="text-green-500">✓ {correctCount}</span> ·{" "}
-            <span className="text-red-500">✗ {wrongCount}</span>
+            <span className="text-green-500 font-medium">✓ {correctCount}</span> ·{" "}
+            <span className="text-red-500 font-medium">✗ {wrongCount}</span>
           </span>
         </div>
         <Progress value={progress} />
       </div>
 
-      <div className="rounded-2xl border bg-card p-5 shadow-sm">
-        <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+      <div className="rounded-2xl border bg-card p-6 md:p-8 shadow-sm">
+        <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2 font-medium">
           Identify the term
         </div>
-        <p className="text-lg leading-relaxed break-words">{card.definition}</p>
+        <p className="text-lg md:text-xl leading-relaxed break-words">{card.definition}</p>
       </div>
 
       <form
@@ -196,13 +200,14 @@ export function IdentificationMode({ cards = ALL }: Props) {
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
+          className="h-12 md:h-14 text-base md:text-lg px-4"
         />
 
         {state !== "input" && (
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl border p-3 ${
+            className={`rounded-xl border p-4 ${
               state === "correct"
                 ? "border-green-500/40 bg-green-500/10"
                 : state === "wrong"
@@ -214,13 +219,13 @@ export function IdentificationMode({ cards = ALL }: Props) {
               {state === "correct" && (
                 <>
                   <Check className="h-4 w-4 text-green-500" />
-                  <span className="text-green-500">Correct!</span>
+                  <span className="text-green-500 font-medium">Correct!</span>
                 </>
               )}
               {state === "wrong" && (
                 <>
                   <X className="h-4 w-4 text-red-500" />
-                  <span className="text-red-500">Not quite.</span>
+                  <span className="text-red-500 font-medium">Not quite.</span>
                 </>
               )}
               {state === "revealed" && (
@@ -232,7 +237,7 @@ export function IdentificationMode({ cards = ALL }: Props) {
             </div>
             <div className="mt-2">
               <div className="text-xs text-muted-foreground">Correct answer</div>
-              <div className="text-lg font-medium break-words">{card.term}</div>
+              <div className="text-lg md:text-xl font-semibold break-words">{card.term}</div>
             </div>
           </motion.div>
         )}
@@ -247,16 +252,16 @@ export function IdentificationMode({ cards = ALL }: Props) {
                   e.preventDefault();
                   reveal();
                 }}
-                className="flex-1 gap-1"
+                className="flex-1 gap-1 h-11 md:h-12 text-base font-medium"
               >
                 <Eye className="h-4 w-4" /> Reveal
               </Button>
-              <Button type="submit" className="flex-1" disabled={!answer.trim()}>
+              <Button type="submit" className="flex-1 h-11 md:h-12 text-base font-medium" disabled={!answer.trim()}>
                 Check
               </Button>
             </>
           ) : (
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full h-11 md:h-12 text-base font-medium">
               {idx + 1 >= total ? "See results" : "Next"}
             </Button>
           )}

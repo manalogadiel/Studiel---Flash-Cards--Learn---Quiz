@@ -60,17 +60,39 @@ export function QuizMode({ cards = ALL }: Props) {
     setSelected(null);
   }, [idx]);
 
-  const onSelect = (cardId: number) => {
-    if (selected !== null) return;
-    setSelected(cardId);
-    if (cardId === q.card.id) setScore((s) => s + 1);
-    else setWrong((w) => w + 1);
-  };
+  const onSelect = useCallback((cardId: number) => {
+    setSelected((prev) => {
+      if (prev !== null) return prev;
+      if (cardId === q.card.id) setScore((s) => s + 1);
+      else setWrong((w) => w + 1);
+      return cardId;
+    });
+  }, [q?.card?.id]);
 
-  const next = () => {
+  const next = useCallback(() => {
     if (idx + 1 >= total) setDone(true);
     else setIdx((i) => i + 1);
-  };
+  }, [idx, total]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
+      if (selected === null && q?.choices) {
+        const num = parseInt(e.key, 10);
+        if (num >= 1 && num <= q.choices.length) {
+          e.preventDefault();
+          onSelect(q.choices[num - 1].id);
+        }
+      } else if (selected !== null) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          next();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selected, q, next, onSelect]);
 
   const restart = () => {
     setQuestions(buildQuestions(cards));
@@ -98,10 +120,10 @@ export function QuizMode({ cards = ALL }: Props) {
   if (done) {
     const pct = Math.round((score / total) * 100);
     return (
-      <div className="px-6 pb-24 flex flex-col items-center text-center gap-6 pt-12">
+      <div className="px-6 pb-24 flex flex-col items-center text-center gap-6 pt-12 max-w-xl mx-auto">
         <div className="text-6xl">{pct >= 80 ? "🏆" : pct >= 50 ? "👍" : "📚"}</div>
-        <h2>Quiz complete!</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-2xl font-bold">Quiz complete!</h2>
+        <p className="text-muted-foreground text-base">
           {score} / {total} correct ({pct}%)
         </p>
         <Button onClick={restart} className="gap-2">
@@ -112,29 +134,29 @@ export function QuizMode({ cards = ALL }: Props) {
   }
 
   return (
-    <div className="px-4 pb-24 flex flex-col gap-4">
+    <div className="px-4 md:px-6 pb-24 flex flex-col gap-4 max-w-3xl mx-auto w-full">
       <div className="space-y-1">
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>
             Question {idx + 1} / {total}
           </span>
           <span>
-            <span className="text-green-500">✓ {score}</span> ·{" "}
-            <span className="text-red-500">✗ {wrong}</span>
+            <span className="text-green-500 font-medium">✓ {score}</span> ·{" "}
+            <span className="text-red-500 font-medium">✗ {wrong}</span>
           </span>
         </div>
         <Progress value={progress} />
       </div>
 
-      <div className="rounded-2xl border bg-card p-6 shadow-sm">
-        <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+      <div className="rounded-2xl border bg-card p-6 md:p-8 shadow-sm">
+        <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2 font-medium">
           Definition
         </div>
-        <p className="text-lg leading-relaxed">{q.card.definition}</p>
+        <p className="text-lg md:text-xl leading-relaxed">{q.card.definition}</p>
       </div>
 
-      <div className="flex flex-col gap-3">
-        {q.choices.map((choice) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+        {q.choices.map((choice, choiceIdx) => {
           const isCorrect = choice.id === q.card.id;
           const isSelected = selected === choice.id;
           const showState = selected !== null;
@@ -150,9 +172,14 @@ export function QuizMode({ cards = ALL }: Props) {
               whileTap={{ scale: 0.98 }}
               disabled={showState}
               onClick={() => onSelect(choice.id)}
-              className={`text-left rounded-xl p-4 transition-colors flex items-center justify-between gap-3 ${cls}`}
+              className={`text-left rounded-xl p-4 md:p-5 transition-colors flex items-center justify-between gap-3 ${cls}`}
             >
-              <span>{choice.term}</span>
+              <span className="flex items-center gap-2">
+                <span className="text-xs font-mono text-muted-foreground hidden md:inline-block w-4">
+                  {choiceIdx + 1}.
+                </span>
+                <span className="text-sm md:text-base font-medium">{choice.term}</span>
+              </span>
               {showState && isCorrect && <Check className="h-5 w-5 text-green-500 shrink-0" />}
               {showState && isSelected && !isCorrect && (
                 <X className="h-5 w-5 text-red-500 shrink-0" />
@@ -163,8 +190,9 @@ export function QuizMode({ cards = ALL }: Props) {
       </div>
 
       {selected !== null && (
-        <Button onClick={next} size="lg" className="mt-2">
+        <Button onClick={next} size="lg" className="mt-2 h-12 text-base font-medium">
           {idx + 1 >= total ? "See results" : "Next question"}
+          <span className="hidden md:inline ml-1 text-xs opacity-75">(Enter)</span>
         </Button>
       )}
     </div>

@@ -10,3 +10,9 @@
 .ios-nav {
   padding-bottom: env(safe-area-inset-bottom, 0px) !important;
 }
+
+@media (min-width: 768px) {
+  .ios-nav {
+    padding-bottom: 0 !important;
+  }
+}

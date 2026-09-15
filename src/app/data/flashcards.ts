@@ -8,5 +8,7 @@ export {
   qmChapter1V2Cards,
   it321Cards,
   envCards,
+  mobileComputingCards,
+  automataTheoryCards,
   qmGurusCards as flashcards,
 } from "./subjects";

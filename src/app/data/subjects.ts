@@ -2,6 +2,8 @@ import { qmGurusCards } from "./qmGurusCards";
 import { emergingTrendsCards } from "./emergingTrendsCards";
 import { qmChapter1Cards } from "./qmChapter1Cards";
 import { qmChapter1V2Cards } from "./qmChapter1V2Cards";
+import { mobileComputingCards } from "./mobileComputingCards";
+import { automataTheoryCards } from "./automataTheoryCards";
 
 export type Flashcard = {
   id: number;
@@ -18,7 +20,14 @@ export type Subject = {
   cards: Flashcard[];
 };
 
-export { qmGurusCards, emergingTrendsCards, qmChapter1Cards, qmChapter1V2Cards };
+export {
+  qmGurusCards,
+  emergingTrendsCards,
+  qmChapter1Cards,
+  qmChapter1V2Cards,
+  mobileComputingCards,
+  automataTheoryCards,
+};
 
 export const it321Cards: Flashcard[] = [
   {
@@ -695,16 +704,33 @@ export const DEFAULT_SUBJECTS: Subject[] = [
     isCustom: false,
     cards: envCards,
   },
+  {
+    id: "mobile-computing",
+    name: "Mobile Computing & Wireless Networks",
+    code: "MC 301",
+    description: "Mobile computing concepts, network topology, transmission media, cellular architecture, and 1G to 6G.",
+    isCustom: false,
+    cards: mobileComputingCards,
+  },
+  {
+    id: "set-theory-automata",
+    name: "Set Theory & Finite Automata",
+    code: "CS 201",
+    description: "Set theory operations, set builder notation, sets in computer science, and DFA vs NDFA.",
+    isCustom: false,
+    cards: automataTheoryCards,
+  },
 ];
 
-const STORAGE_KEY = "studiel_subjects_v4";
-const ACTIVE_KEY = "studiel_active_subject_id_v4";
+const STORAGE_KEY = "studiel_subjects_v5";
+const ACTIVE_KEY = "studiel_active_subject_id_v5";
 
 export function loadStoredSubjects(): Subject[] {
   if (typeof window === "undefined") return DEFAULT_SUBJECTS;
   try {
     const raw =
       localStorage.getItem(STORAGE_KEY) ||
+      localStorage.getItem("studiel_subjects_v4") ||
       localStorage.getItem("studiel_subjects_v3") ||
       localStorage.getItem("studiel_subjects_v2");
     if (!raw) return DEFAULT_SUBJECTS;
@@ -730,17 +756,18 @@ export function saveStoredSubjects(subjects: Subject[]): void {
 }
 
 export function getActiveSubjectId(available: Subject[]): string {
-  if (typeof window === "undefined") return "qm-chapter-1-v2";
+  if (typeof window === "undefined") return "mobile-computing";
   try {
     const saved =
       localStorage.getItem(ACTIVE_KEY) ||
+      localStorage.getItem("studiel_active_subject_id_v4") ||
       localStorage.getItem("studiel_active_subject_id_v3") ||
       localStorage.getItem("studiel_active_subject_id_v2");
     if (saved && available.some((s) => s.id === saved)) {
       return saved;
     }
   } catch { }
-  return "qm-chapter-1-v2";
+  return available[0]?.id ?? "mobile-computing";
 }
 
 export function setActiveSubjectId(id: string): void {
